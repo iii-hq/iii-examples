@@ -1,5 +1,3 @@
-// Shared types for all workers and workflow
-
 export interface User {
   id: string
   name: string
@@ -25,7 +23,6 @@ export interface Inventory {
   quantity: number
 }
 
-// Input types
 export interface GetByIdInput {
   id: string
 }

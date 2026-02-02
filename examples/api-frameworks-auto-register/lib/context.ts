@@ -1,10 +1,7 @@
-// Shared context for workflow orchestration
-// Legacy workers don't need this - workflow manages it
-
 export interface Logger {
-  info: (msg: string, data?: Record<string, unknown>) => void
-  warn: (msg: string, data?: Record<string, unknown>) => void
-  error: (msg: string, data?: Record<string, unknown>) => void
+  info: (msg: string, data?: unknown) => void
+  warn: (msg: string, data?: unknown) => void
+  error: (msg: string, data?: unknown) => void
 }
 
 export interface WorkflowContext {
@@ -24,12 +21,7 @@ export function createContext(requestId?: string): WorkflowContext {
     error: (msg, data) => console.error(`[${id}] ERROR: ${msg}`, data || ''),
   }
 
-  return {
-    requestId: id,
-    startTime,
-    logger,
-    state: new Map(),
-  }
+  return { requestId: id, startTime, logger, state: new Map() }
 }
 
 export function elapsed(ctx: WorkflowContext): number {

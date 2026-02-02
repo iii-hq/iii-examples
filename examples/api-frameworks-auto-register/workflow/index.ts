@@ -1,22 +1,20 @@
-// Workflow with Shared Context
-// Orchestrates legacy workers with logging, state, and request tracking
-
 import { Bridge } from '@iii-dev/sdk'
 import { createContext, elapsed, WorkflowContext } from '../lib/context'
 import type { User, Product, Order, Inventory, CreateOrderInput } from '../lib/types'
 
 const bridge = new Bridge('ws://127.0.0.1:49134')
 
-// Helper: invoke with context logging
 async function invoke<T>(ctx: WorkflowContext, fn: string, input: unknown): Promise<T> {
   ctx.logger.info(`Calling ${fn}`, { input })
-  const result = await bridge.invokeFunction(fn, input) as T
+  const response = await bridge.invokeFunction(fn, input) as { status_code?: number; body?: T } | T
+  const result = (response && typeof response === 'object' && 'body' in response) 
+    ? response.body as T 
+    : response as T
   ctx.logger.info(`${fn} returned`, { result, elapsed: elapsed(ctx) })
   ctx.state.set(fn, result)
   return result
 }
 
-// Validate order input
 function validateInput(input: CreateOrderInput): string | null {
   if (!input.userId?.trim()) return 'userId is required'
   if (!input.productId?.trim()) return 'productId is required'
@@ -24,18 +22,13 @@ function validateInput(input: CreateOrderInput): string | null {
   return null
 }
 
-// POST /order - Create order with full orchestration
 bridge.registerFunction(
   { function_path: 'workflow.createOrder' },
   async (req: { body?: CreateOrderInput } & CreateOrderInput) => {
-    // Extract data from API request body
     const input: CreateOrderInput = req.body || req
-    
-    // Create shared context for this request
     const ctx = createContext()
     ctx.logger.info('Starting order workflow', input)
 
-    // Validate input
     const validationError = validateInput(input)
     if (validationError) {
       ctx.logger.error('Validation failed', { error: validationError })
@@ -45,31 +38,25 @@ bridge.registerFunction(
     const { userId, productId, quantity } = input
 
     try {
-      // Step 1: Validate user exists (Express)
       const user = await invoke<User | null>(ctx, 'users.get', { id: userId })
       if (!user) {
         ctx.logger.error('User not found', { userId })
         return { status_code: 404, body: { error: 'User not found' } }
       }
 
-      // Step 2: Validate product exists (Hono)
       const product = await invoke<Product | null>(ctx, 'products.get', { id: productId })
       if (!product) {
         ctx.logger.error('Product not found', { productId })
         return { status_code: 404, body: { error: 'Product not found' } }
       }
 
-      // Step 3: Check inventory (Koa)
       const stock = await invoke<Inventory>(ctx, 'inventory.get', { productId })
       if (stock.quantity < quantity) {
         ctx.logger.warn('Insufficient stock', { requested: quantity, available: stock.quantity })
         return { status_code: 400, body: { error: 'Insufficient stock', available: stock.quantity } }
       }
 
-      // Step 4: Create order (Fastify)
       const order = await invoke<Order>(ctx, 'orders.create', { userId, productId, quantity })
-
-      // Step 5: Decrement inventory (Koa)
       const newStock = await invoke<Inventory>(ctx, 'inventory.decrement', { productId, quantity })
 
       ctx.logger.info('Order workflow complete', { orderId: order.id, totalTime: elapsed(ctx) })
@@ -94,7 +81,6 @@ bridge.registerFunction(
   }
 )
 
-// Register API trigger
 bridge.registerTrigger({
   trigger_type: 'api',
   function_path: 'workflow.createOrder',
@@ -103,5 +89,3 @@ bridge.registerTrigger({
 
 console.log('[Workflow] Order orchestration ready')
 console.log('  POST /order - Creates order across 4 legacy services')
-console.log('  - Shared context: request ID, logging, state')
-console.log('  - Auto-registered handlers via lib/auto-register.ts')

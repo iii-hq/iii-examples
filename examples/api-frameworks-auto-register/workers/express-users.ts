@@ -1,6 +1,3 @@
-// Legacy Express Users API
-// Simple CRUD - no knowledge of III orchestration
-
 import express from 'express'
 import { Bridge } from '@iii-dev/sdk'
 import { autoRegister } from '../lib/auto-register'
@@ -9,10 +6,8 @@ import type { User, GetByIdInput } from '../lib/types'
 const app = express()
 app.use(express.json())
 
-// In-memory store (legacy style)
 const users: User[] = []
 
-// Legacy REST endpoints (still work standalone)
 app.get('/users', (_, res) => res.json(users))
 app.get('/users/:id', (req, res) => {
   const user = users.find(u => u.id === req.params.id)
@@ -23,7 +18,6 @@ app.post('/users', (req, res) => {
   res.status(201).json(req.body)
 })
 
-// Start server and register with III
 app.listen(3001, () => {
   console.log('[Express] Users API on :3001')
 
@@ -33,9 +27,9 @@ app.listen(3001, () => {
     bridge,
     prefix: 'users',
     handlers: {
-      list: async () => users,
-      get: async (input: GetByIdInput) => users.find(u => u.id === input.id) || null,
-      create: async (input: User) => { users.push(input); return input },
+      list: { handler: async () => users, method: 'GET' },
+      get: { handler: async (input: GetByIdInput) => users.find(u => u.id === input.id) || null, method: 'GET' },
+      create: { handler: async (input: User) => { users.push(input); return input }, method: 'POST' },
     }
   })
 })

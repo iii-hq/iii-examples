@@ -1,41 +1,40 @@
-// Auto-register all handlers from a framework instance
-// Works with Express, Fastify, Hono, Koa - any framework with routes
-
 import { Bridge } from '@iii-dev/sdk'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Handler = (input: any) => Promise<any>
 
+interface HandlerConfig {
+  handler: Handler
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  description?: string
+}
+
 interface AutoRegisterOptions {
   bridge: Bridge
   prefix: string
-  handlers: Record<string, Handler>
+  handlers: Record<string, HandlerConfig>
 }
 
-/**
- * Auto-register all handlers with III Engine
- * 
- * @example
- * autoRegister({
- *   bridge,
- *   prefix: 'users',
- *   handlers: {
- *     list: async () => users,
- *     get: async ({ id }) => users.find(u => u.id === id),
- *     create: async (data) => { users.push(data); return data }
- *   }
- * })
- * // Registers: users.list, users.get, users.create
- */
 export function autoRegister({ bridge, prefix, handlers }: AutoRegisterOptions): void {
-  for (const [name, handler] of Object.entries(handlers)) {
+  for (const [name, config] of Object.entries(handlers)) {
     const functionPath = `${prefix}.${name}`
-    
+    const apiPath = `${prefix}/${name}`
+
     bridge.registerFunction(
-      { function_path: functionPath },
-      async (input) => handler(input)
+      { function_path: functionPath, description: config.description },
+      async (input) => {
+        const data = input?.body ?? input
+        const result = await config.handler(data)
+        return { status_code: 200, body: result }
+      }
     )
 
-    console.log(`  ✓ Registered: ${functionPath}`)
+    bridge.registerTrigger({
+      trigger_type: 'api',
+      function_path: functionPath,
+      config: { api_path: apiPath, http_method: config.method },
+    })
+
+    console.log(`  ✓ ${functionPath} [${config.method} /${apiPath}]`)
   }
 }
