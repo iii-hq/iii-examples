@@ -1,0 +1,33 @@
+{
+  "name": "@iii-dev/api-frameworks-workers",
+  "version": "1.0.0",
+  "description": "Multi-framework workers with III Engine orchestration",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n express,fastify,hono,koa,workflow -c blue,green,yellow,cyan,magenta \"bun workers/express-users.ts\" \"bun workers/fastify-orders.ts\" \"bun workers/hono-products.ts\" \"bun workers/koa-inventory.ts\" \"bun workflow/index.ts\"",
+    "dev:express": "bun --watch workers/express-users.ts",
+    "dev:fastify": "bun --watch workers/fastify-orders.ts",
+    "dev:hono": "bun --watch workers/hono-products.ts",
+    "dev:koa": "bun --watch workers/koa-inventory.ts",
+    "dev:workflow": "bun --watch workflow/index.ts"
+  },
+  "dependencies": {
+    "@iii-dev/sdk": "workspace:*",
+    "express": "^5.0.1",
+    "fastify": "^5.2.1",
+    "hono": "^4.7.4",
+    "@hono/node-server": "^1.14.0",
+    "koa": "^2.15.3",
+    "@koa/router": "^13.1.0",
+    "koa-bodyparser": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa__router": "^12.0.4",
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.9.3"
+  }
+}

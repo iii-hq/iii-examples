@@ -1,0 +1,21 @@
+flowchart TB
+    subgraph workers[workers/]
+        express[express-users.ts - Express :3001]
+        fastify[fastify-orders.ts - Fastify :3002]
+        hono[hono-products.ts - Hono :3003]
+        koa[koa-inventory.ts - Koa :3004]
+    end
+    
+    bridge[Bridge]
+    engine[III Engine :49134]
+    
+    subgraph workflow[workflow/]
+        orchestrator[index.ts - POST /order]
+    end
+    
+    express --> bridge
+    fastify --> bridge
+    hono --> bridge
+    koa --> bridge
+    bridge --> engine
+    orchestrator --> engine

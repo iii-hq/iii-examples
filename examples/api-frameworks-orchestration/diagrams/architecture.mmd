@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph process[Single Process - index.ts]
+        direction TB
+        subgraph frameworks[API Frameworks]
+            express[Express :3001 - Users]
+            fastify[Fastify :3002 - Orders]
+            hono[Hono :3003 - Products]
+            koa[Koa :3004 - Inventory]
+        end
+        bridge[Bridge]
+    end
+    
+    engine[III Engine :49134]
+    
+    express --> bridge
+    fastify --> bridge
+    hono --> bridge
+    koa --> bridge
+    bridge --> engine

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070.1 1000" width="1070.1" height="1000" style="--bg:#0d1117;--fg:#e6edf3;--line:#3d444d;--accent:#4493f8;--muted:#9198a1;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 30%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="seq-arrow" markerWidth="8" markerHeight="4.8" refX="8" refY="2.4" orient="auto-start-reverse">
+    <polygon points="0 0, 8 2.4, 0 4.8" fill="var(--_arrow)" />
+  </marker>
+  <marker id="seq-arrow-open" markerWidth="8" markerHeight="4.8" refX="8" refY="2.4" orient="auto-start-reverse">
+    <polyline points="0 0, 8 2.4, 0 4.8" fill="none" stroke="var(--_arrow)" stroke-width="1" />
+  </marker>
+</defs>
+<line x1="70" y1="70" x2="70" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="210" y1="70" x2="210" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="350" y1="70" x2="350" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="507.8" y1="70" x2="507.8" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="669.175" y1="70" x2="669.175" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="816.25" y1="70" x2="816.25" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="974.05" y1="70" x2="974.05" y2="970" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" />
+<line x1="70" y1="90" x2="210" y2="90" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="140" y="84" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">POST /order</text>
+<line x1="210" y1="130" x2="350" y2="130" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="280" y="124" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">invokeFunction users.get</text>
+<line x1="350" y1="170" x2="507.8" y2="170" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="428.9" y="164" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">users.get</text>
+<line x1="507.8" y1="210" x2="350" y2="210" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="428.9" y="204" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">user</text>
+<line x1="350" y1="250" x2="210" y2="250" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="280" y="244" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">user</text>
+<line x1="210" y1="290" x2="350" y2="290" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="280" y="284" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">invokeFunction products.get</text>
+<line x1="350" y1="330" x2="669.175" y2="330" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="509.5875" y="324" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">products.get</text>
+<line x1="669.175" y1="370" x2="350" y2="370" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="509.5875" y="364" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">product</text>
+<line x1="350" y1="410" x2="210" y2="410" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="280" y="404" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">product</text>
+<line x1="210" y1="450" x2="350" y2="450" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="280" y="444" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">invokeFunction inventory.get</text>
+<line x1="350" y1="490" x2="816.25" y2="490" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="583.125" y="484" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">inventory.get</text>
+<line x1="816.25" y1="530" x2="350" y2="530" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="583.125" y="524" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">stock</text>
+<line x1="350" y1="570" x2="210" y2="570" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="280" y="564" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">stock</text>
+<line x1="210" y1="610" x2="350" y2="610" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="280" y="604" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">invokeFunction orders.create</text>
+<line x1="350" y1="650" x2="974.05" y2="650" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="662.025" y="644" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">orders.create</text>
+<line x1="974.05" y1="690" x2="350" y2="690" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="662.025" y="684" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">order</text>
+<line x1="350" y1="730" x2="210" y2="730" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="280" y="724" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">order</text>
+<line x1="210" y1="770" x2="350" y2="770" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="280" y="764" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">invokeFunction inventory.set</text>
+<line x1="350" y1="810" x2="816.25" y2="810" stroke="var(--_line)" stroke-width="0.75" marker-end="url(#seq-arrow)" />
+<text x="583.125" y="804" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">inventory.set</text>
+<line x1="816.25" y1="850" x2="350" y2="850" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="583.125" y="844" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">updated</text>
+<line x1="350" y1="890" x2="210" y2="890" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="280" y="884" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">updated</text>
+<line x1="210" y1="930" x2="70" y2="930" stroke="var(--_line)" stroke-width="0.75" stroke-dasharray="6 4" marker-end="url(#seq-arrow)" />
+<text x="140" y="924" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)">Complete response</text>
+<rect x="30" y="30" width="80" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="70" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Client</text>
+<rect x="165.4" y="30" width="89.2" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="210" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Workflow</text>
+<rect x="298.25" y="30" width="103.5" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="350" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">III Engine</text>
+<rect x="441.75" y="30" width="132.10000000000002" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="507.8" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Express Worker</text>
+<rect x="613.8499999999999" y="30" width="110.65" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="669.175" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Hono Worker</text>
+<rect x="764.5" y="30" width="103.5" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="816.25" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Koa Worker</text>
+<rect x="908" y="30" width="132.10000000000002" height="40" rx="4" ry="4" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+<text x="974.05" y="50" text-anchor="middle" dy="0.35em" font-size="13" font-weight="500" fill="var(--_text)">Fastify Worker</text>
+</svg>

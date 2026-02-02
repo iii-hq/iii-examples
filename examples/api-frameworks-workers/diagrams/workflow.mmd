@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant Client
+    participant W as Workflow
+    participant III as III Engine
+    participant E as Express Worker
+    participant H as Hono Worker
+    participant K as Koa Worker
+    participant F as Fastify Worker
+
+    Client->>W: POST /order
+    W->>III: invokeFunction users.get
+    III->>E: users.get
+    E-->>III: user
+    III-->>W: user
+    
+    W->>III: invokeFunction products.get
+    III->>H: products.get
+    H-->>III: product
+    III-->>W: product
+    
+    W->>III: invokeFunction inventory.get
+    III->>K: inventory.get
+    K-->>III: stock
+    III-->>W: stock
+    
+    W->>III: invokeFunction orders.create
+    III->>F: orders.create
+    F-->>III: order
+    III-->>W: order
+    
+    W->>III: invokeFunction inventory.set
+    III->>K: inventory.set
+    K-->>III: updated
+    III-->>W: updated
+    
+    W-->>Client: Complete response
