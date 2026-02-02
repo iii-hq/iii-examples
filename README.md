@@ -22,6 +22,7 @@ iii --version
 |---------|-------------|
 | [api-frameworks-orchestration](examples/api-frameworks-orchestration) | Run 4 API frameworks (Express, Fastify, Hono, Koa) in a single file |
 | [api-frameworks-workers](examples/api-frameworks-workers) | Run 4 API frameworks as separate workers |
+| [api-frameworks-auto-register](examples/api-frameworks-auto-register) | Auto-registration + shared context (logging, state, request tracking) |
 
 ## Quick Start
 
