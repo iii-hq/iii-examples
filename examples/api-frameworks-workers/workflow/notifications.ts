@@ -1,5 +1,5 @@
 import { getContext } from '@iii-dev/sdk'
-import { iii } from './iii-client'
+import { callAsync, register } from './iii-client'
 import type { OrderState } from './types'
 
 type StateEventData = {
@@ -38,7 +38,7 @@ const handleOrderCompleted = async (event: StateEventData) => {
   
   logger.info('Sending completion notification', { orderId })
   
-  iii.invokeFunctionAsync('notifications.send', {
+  callAsync('workers::node::sendNotification', {
     userId: order.userId,
     type: 'order_completed',
     message: `Your order ${orderId} has been completed! Product: ${order.product?.name}, Quantity: ${order.quantity}`
@@ -52,33 +52,33 @@ const handleOrderRejected = async (event: StateEventData) => {
   
   logger.info('Sending rejection notification', { orderId })
   
-  iii.invokeFunctionAsync('notifications.send', {
+  callAsync('workers::node::sendNotification', {
     userId: order.userId,
     type: 'order_rejected',
     message: `Your order ${orderId} was rejected: ${order.error || 'Unknown reason'}`
   })
 }
 
-iii.registerFunction({ function_path: 'workflow.notifications.isCompleted' }, isOrderCompleted)
-iii.registerFunction({ function_path: 'workflow.notifications.isRejected' }, isOrderRejected)
-iii.registerFunction({ function_path: 'workflow.notifications.handleCompleted' }, handleOrderCompleted)
-iii.registerFunction({ function_path: 'workflow.notifications.handleRejected' }, handleOrderRejected)
+register({ function_id: 'workers::workflow::isOrderCompleted' }, isOrderCompleted)
+register({ function_id: 'workers::workflow::isOrderRejected' }, isOrderRejected)
+register({ function_id: 'workers::workflow::handleOrderCompleted' }, handleOrderCompleted)
+register({ function_id: 'workers::workflow::handleOrderRejected' }, handleOrderRejected)
 
-iii.registerTrigger({
+register({
   trigger_type: 'state',
-  function_path: 'workflow.notifications.handleCompleted',
+  function_id: 'workers::workflow::handleOrderCompleted',
   config: {
-    condition_function_path: 'workflow.notifications.isCompleted'
+    condition_function_path: 'workers::workflow::isOrderCompleted'
   }
 })
 
-iii.registerTrigger({
+register({
   trigger_type: 'state',
-  function_path: 'workflow.notifications.handleRejected',
+  function_id: 'workers::workflow::handleOrderRejected',
   config: {
-    condition_function_path: 'workflow.notifications.isRejected'
+    condition_function_path: 'workers::workflow::isOrderRejected'
   }
 })
 
-console.log('[Workflow] notifications.handleCompleted - Triggered by state changes with condition')
-console.log('[Workflow] notifications.handleRejected - Triggered by state changes with condition')
+console.log('[Workflow] handleOrderCompleted - Triggered by state changes with condition')
+console.log('[Workflow] handleOrderRejected - Triggered by state changes with condition')

@@ -1,5 +1,5 @@
 import { getContext } from "@iii-dev/sdk";
-import { enqueue, iii, state } from "./iii-client";
+import { call, enqueue, register, state } from "./iii-client";
 import type { OrderValidatedEvent } from "./types";
 
 type Inventory = { id: string; quantity: number };
@@ -14,8 +14,8 @@ const checkInventory = async (event: {
 
   const order = await state.get("orders", orderId);
 
-  const inventory = await iii.invokeFunction<{ id: string }, Inventory | null>(
-    "inventory.get",
+  const inventory = await call<{ id: string }, Inventory | null>(
+    "workers::koa::getInventory",
     { id: order.productId }
   );
 
@@ -51,17 +51,17 @@ const checkInventory = async (event: {
   await enqueue("order.ready", { orderId });
 };
 
-iii.registerFunction(
-  { function_path: "workflow.order.checkInventory" },
+register(
+  { function_id: "workers::workflow::checkInventory" },
   checkInventory
 );
 
-iii.registerTrigger({
+register({
   trigger_type: "event",
-  function_path: "workflow.order.checkInventory",
+  function_id: "workers::workflow::checkInventory",
   config: {
     topic: "order.validated",
   },
 });
 
-console.log("[Workflow] order.checkInventory - Triggered by order.validated");
+console.log("[Workflow] checkInventory - Triggered by order.validated");

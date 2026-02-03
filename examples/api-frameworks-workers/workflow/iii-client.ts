@@ -9,37 +9,23 @@ export const enqueue = async (topic: string, data: any) => {
 };
 
 export const call: typeof iii.invokeFunction = iii.invokeFunction.bind(iii);
+export const callAsync: typeof iii.invokeFunctionAsync =
+  iii.invokeFunctionAsync.bind(iii);
 
 type SdkFunctionConfig = Parameters<typeof iii.registerFunction>[0];
 type SdkTriggerConfig = Parameters<typeof iii.registerTrigger>[0];
 
-type FunctionConfig = Omit<SdkFunctionConfig, "function_path"> & {
-  function_id: string;
-};
-type TriggerConfig = Omit<SdkTriggerConfig, "function_path"> & {
-  function_id: string;
-};
+type FunctionConfig = Omit<SdkFunctionConfig, "function_path"> & { id: string };
 
-export function register(
+export function registerFunction(
   config: FunctionConfig,
   handler: RemoteFunctionHandler
-): void;
-export function register(
-  config: TriggerConfig
-): ReturnType<typeof iii.registerTrigger>;
-export function register(
-  config: FunctionConfig | TriggerConfig,
-  handler?: RemoteFunctionHandler
-) {
-  const { function_id, ...rest } = config;
-  const sdkConfig = { ...rest, function_path: function_id };
-
-  if ("trigger_type" in config) {
-    return iii.registerTrigger(sdkConfig as SdkTriggerConfig);
-  } else {
-    iii.registerFunction(sdkConfig as SdkFunctionConfig, handler!);
-  }
+): void {
+  const { id, ...rest } = config;
+  iii.registerFunction({ ...rest, function_path: id }, handler);
 }
+
+export const registerTrigger: typeof iii.registerTrigger = iii.registerTrigger;
 
 export const state = {
   get: async (group_id: string, item_id: string) => {

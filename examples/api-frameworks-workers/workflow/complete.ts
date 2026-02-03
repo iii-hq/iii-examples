@@ -1,5 +1,5 @@
 import { getContext } from '@iii-dev/sdk'
-import { iii, state } from './iii-client'
+import { call, register, state } from './iii-client'
 import type { OrderReadyEvent } from './types'
 
 type Order = { id: string; userId: string; productId: string; quantity: number; status: string }
@@ -18,10 +18,10 @@ const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
     return
   }
 
-  const decrementResult = await iii.invokeFunction<
+  const decrementResult = await call<
     { id: string; quantity: number },
     Inventory | null
-  >('inventory.decrement', { id: order.productId, quantity: order.quantity })
+  >('workers::koa::decrementInventory', { id: order.productId, quantity: order.quantity })
 
   if (!decrementResult) {
     const error = 'Failed to decrement inventory - stock may have changed'
@@ -32,8 +32,8 @@ const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
     return
   }
 
-  const createdOrder = await iii.invokeFunction<Omit<Order, 'status'>, Order>(
-    'orders.create',
+  const createdOrder = await call<Omit<Order, 'status'>, Order>(
+    'workers::fastify::createOrder',
     { id: orderId, userId: order.userId, productId: order.productId, quantity: order.quantity }
   )
 
@@ -44,12 +44,12 @@ const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
   logger.info('Order completed', { orderId })
 }
 
-iii.registerFunction({ function_path: 'workflow.order.complete' }, completeOrder)
+register({ function_id: 'workers::workflow::completeOrder' }, completeOrder)
 
-iii.registerTrigger({
+register({
   trigger_type: 'event',
-  function_path: 'workflow.order.complete',
+  function_id: 'workers::workflow::completeOrder',
   config: { topic: 'order.ready' }
 })
 
-console.log('[Workflow] order.complete - Triggered by order.ready, creates order')
+console.log('[Workflow] completeOrder - Triggered by order.ready, creates order')

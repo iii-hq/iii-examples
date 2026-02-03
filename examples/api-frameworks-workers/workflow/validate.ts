@@ -1,5 +1,5 @@
 import { getContext } from '@iii-dev/sdk'
-import { iii, state } from './iii-client'
+import { call, enqueue, register, state } from './iii-client'
 import type { OrderRequestedEvent, User, Product } from './types'
 
 const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) => {
@@ -11,8 +11,8 @@ const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) =>
   const order = await state.get('orders', orderId)
 
   const [user, product] = await Promise.all([
-    iii.invokeFunction<{ id: string }, User | null>('users.get', { id: order.userId }),
-    iii.invokeFunction<{ id: string }, Product | null>('products.get', { id: order.productId })
+    call<{ id: string }, User | null>('workers::express::getUser', { id: order.userId }),
+    call<{ id: string }, Product | null>('workers::hono::getProduct', { id: order.productId })
   ])
 
   if (!user || !product) {
@@ -28,10 +28,7 @@ const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) =>
 
   await state.set('orders', orderId, { ...order, status: 'validated', user, product, updatedAt: Date.now() })
 
-  await iii.invokeFunction('event.emit', {
-    topic: 'order.validated',
-    data: { orderId }
-  })
+  await enqueue('order.validated', { orderId })
 }
 
 const validateOrderCondition = async (event: { event: { data: OrderRequestedEvent } }) => {
@@ -55,13 +52,13 @@ const validateOrderCondition = async (event: { event: { data: OrderRequestedEven
   return true
 }
 
-iii.registerFunction({ function_path: 'workflow.order.conditions.validate' }, validateOrderCondition)
-iii.registerFunction({ function_path: 'workflow.order.validate' }, validateOrder)
+register({ function_id: 'workers::workflow::validateOrderCondition' }, validateOrderCondition)
+register({ function_id: 'workers::workflow::validateOrder' }, validateOrder)
 
-iii.registerTrigger({
+register({
   trigger_type: 'event',
-  function_path: 'workflow.order.validate',
-  config: { topic: 'order.requested', condition_function_path: 'workflow.order.validate' }
+  function_id: 'workers::workflow::validateOrder',
+  config: { topic: 'order.requested', condition_function_path: 'workers::workflow::validateOrderCondition' }
 })
 
-console.log('[Workflow] order.validate - Triggered by order.requested, validates user + product in parallel')
+console.log('[Workflow] validateOrder - Triggered by order.requested, validates user + product in parallel')
