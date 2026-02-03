@@ -13,31 +13,43 @@ import { Bridge } from '@iii-dev/sdk'
 const bridge = new Bridge(process.env.III_BRIDGE_URL ?? 'ws://localhost:49134')
 
 // In-memory store
-type Inventory = { productId: string; quantity: number }
+type Inventory = { id: string; quantity: number }
 const inventory = new Map<string, Inventory>()
 
-// Route handlers (these become III functions)
-const getInventory = async ({ productId }: { productId: string }) => inventory.get(productId) ?? null
+const getInventory = async ({ id }: { id: string }) => inventory.get(id) ?? null
 const setInventory = async (data: Inventory) => {
-  inventory.set(data.productId, data)
+  inventory.set(data.id, data)
   return data
 }
+const decrementInventory = async ({ id, quantity }: { id: string; quantity: number }) => {
+  const inv = inventory.get(id)
+  if (!inv || inv.quantity < quantity) return null
+  inv.quantity -= quantity
+  inventory.set(id, inv)
+  return inv
+}
 
-// Koa app
 const app = new Koa()
 const router = new Router()
 
 app.use(bodyParser())
 
-router.get('/inventory/:productId', async (ctx: Koa.Context) => {
-  const inv = await getInventory({ productId: ctx.params.productId })
+router.get('/inventory/:id', async (ctx: Koa.Context) => {
+  const inv = await getInventory({ id: ctx.params.id })
   if (!inv) { ctx.status = 404; ctx.body = { error: 'Not found' }; return }
   ctx.body = inv
 })
 
-router.put('/inventory/:productId', async (ctx: Koa.Context) => {
+router.put('/inventory/:id', async (ctx: Koa.Context) => {
   const body = ctx.request.body as { quantity: number }
-  ctx.body = await setInventory({ productId: ctx.params.productId, quantity: body.quantity })
+  ctx.body = await setInventory({ id: ctx.params.id, quantity: body.quantity })
+})
+
+router.post('/inventory/:id/decrement', async (ctx: Koa.Context) => {
+  const body = ctx.request.body as { quantity: number }
+  const inv = await decrementInventory({ id: ctx.params.id, quantity: body.quantity })
+  if (!inv) { ctx.status = 400; ctx.body = { error: 'Insufficient stock or not found' }; return }
+  ctx.body = inv
 })
 
 app.use(router.routes())
@@ -48,7 +60,8 @@ app.listen(PORT, () => {
   // One-liner registration of all handlers
   bridge.registerFunction({ function_path: 'inventory.get' }, getInventory)
   bridge.registerFunction({ function_path: 'inventory.set' }, setInventory)
+  bridge.registerFunction({ function_path: 'inventory.decrement' }, decrementInventory)
 
   console.log(`[Koa] Inventory worker running on http://localhost:${PORT}`)
-  console.log(`[Koa] Registered: inventory.get, inventory.set`)
+  console.log(`[Koa] Registered: inventory.get, inventory.set, inventory.decrement`)
 })

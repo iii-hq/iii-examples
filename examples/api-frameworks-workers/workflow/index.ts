@@ -1,66 +1,62 @@
-/**
- * Workflow - Orchestration Layer
- * 
- * This is a separate Node process that creates workflows
- * orchestrating the Express, Fastify, Hono, and Koa workers.
- * 
- * Think of this like a company with legacy APIs:
- * - Express manages Users (legacy user service)
- * - Fastify manages Orders (legacy order service)
- * - Hono manages Products (legacy product service)
- * - Koa manages Inventory (legacy inventory service)
- * 
- * Now with III Engine, we can orchestrate them all together!
- */
+import { type ApiRequest, type ApiResponse, getContext } from '@iii-dev/sdk'
+import { state, emitEvent, iii } from './iii-client'
+import type { CreateOrderInput, OrderState } from './types'
 
-import { Bridge, type ApiRequest, type ApiResponse } from '@iii-dev/sdk'
-
-const bridge = new Bridge(process.env.III_BRIDGE_URL ?? 'ws://localhost:49134')
-
-// ============================================================
-// WORKFLOW: Create Order (orchestrates all 4 frameworks!)
-// ============================================================
-
-const createOrder = async (req: ApiRequest<{ userId: string; productId: string; quantity: number }>): Promise<ApiResponse> => {
+const createOrder = async (req: ApiRequest<CreateOrderInput>): Promise<ApiResponse> => {
+  const { logger } = getContext()
   const { userId, productId, quantity } = req.body
 
-  // 1. Validate user (Express)
-  const user = await bridge.invokeFunction('users.get', { id: userId })
-  if (!user) return { status_code: 404, body: { error: 'User not found' } }
+  const orderId = crypto.randomUUID()
+  const now = Date.now()
 
-  // 2. Validate product (Hono)
-  const product = await bridge.invokeFunction('products.get', { id: productId })
-  if (!product) return { status_code: 404, body: { error: 'Product not found' } }
-
-  // 3. Check inventory (Koa)
-  const inv = await bridge.invokeFunction('inventory.get', { productId }) as { quantity: number } | null
-  if (!inv || inv.quantity < quantity) {
-    return { status_code: 400, body: { error: `Insufficient stock: ${inv?.quantity ?? 0}` } }
-  }
-
-  // 4. Create order (Fastify)
-  const order = await bridge.invokeFunction('orders.create', {
-    id: `order-${Date.now()}`,
+  const orderState: OrderState = {
+    orderId,
     userId,
     productId,
-    quantity
-  })
+    quantity,
+    status: 'pending',
+    createdAt: now,
+    updatedAt: now
+  }
 
-  // 5. Update inventory (Koa)
-  await bridge.invokeFunction('inventory.set', { productId, quantity: inv.quantity - quantity })
+  logger.info('Creating order', { orderId, userId, productId, quantity })
 
-  return { status_code: 201, body: { order, user, product } }
+  await state.set('orders', orderId, orderState)
+  await emitEvent('order.requested', { orderId })
+
+  logger.info('Order created, processing async', { orderId })
+
+  return {
+    status_code: 202,
+    body: { orderId, status: 'pending', message: 'Order is being processed' }
+  }
 }
 
-// ============================================================
-// Register workflow with III Engine
-// ============================================================
+const getOrder = async (req: ApiRequest): Promise<ApiResponse> => {
+  const orderId = req.path_params.orderId
 
-bridge.registerFunction({ function_path: 'api.post.order' }, createOrder)
-bridge.registerTrigger({
+  const order = await state.get('orders', orderId)
+  if (!order) {
+    return { status_code: 404, body: { error: 'Order not found' } }
+  }
+
+  return { status_code: 200, body: order }
+}
+
+iii.registerFunction({ function_path: 'workflow.order.create' }, createOrder)
+iii.registerFunction({ function_path: 'workflow.order.get' }, getOrder)
+
+iii.registerTrigger({
   trigger_type: 'api',
-  function_path: 'api.post.order',
+  function_path: 'workflow.order.create',
   config: { api_path: 'order', http_method: 'POST' }
 })
 
-console.log('[Workflow] POST /order - Orchestrates: Express + Hono + Koa + Fastify')
+iii.registerTrigger({
+  trigger_type: 'api',
+  function_path: 'workflow.order.get',
+  config: { api_path: 'order/:orderId', http_method: 'GET' }
+})
+
+console.log('[Workflow] POST /order - Creates order and emits order.requested event')
+console.log('[Workflow] GET /order/:orderId - Query order status from state')

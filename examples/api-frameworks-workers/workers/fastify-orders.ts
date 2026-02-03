@@ -22,6 +22,13 @@ const createOrder = async (data: Omit<Order, 'status'>) => {
   orders.set(data.id, order)
   return order
 }
+const updateOrderStatus = async ({ id, status }: { id: string; status: string }) => {
+  const order = orders.get(id)
+  if (!order) return null
+  order.status = status
+  orders.set(id, order)
+  return order
+}
 
 // Fastify app
 const fastify = Fastify({ logger: false })
@@ -35,17 +42,22 @@ fastify.get<{ Params: { id: string } }>('/orders/:id', async (req, reply) => {
 fastify.post<{ Body: Omit<Order, 'status'> }>('/orders', async (req, reply) => {
   return reply.status(201).send(await createOrder(req.body))
 })
+fastify.patch<{ Params: { id: string }; Body: { status: string } }>('/orders/:id/status', async (req, reply) => {
+  const order = await updateOrderStatus({ id: req.params.id, status: req.body.status })
+  if (!order) return reply.status(404).send({ error: 'Order not found' })
+  return order
+})
 
 // Register with III Engine on ready
 fastify.addHook('onReady', async () => {
   bridge.registerFunction({ function_path: 'orders.list', description: 'List all orders' }, listOrders)
   bridge.registerFunction({ function_path: 'orders.get', description: 'Get order by ID' }, getOrder)
   bridge.registerFunction({ function_path: 'orders.create', description: 'Create an order' }, createOrder)
+  bridge.registerFunction({ function_path: 'orders.updateStatus' }, updateOrderStatus)
 
-  console.log(`[Fastify] Registered: orders.list, orders.get, orders.create`)
+  console.log(`[Fastify] Registered: orders.list, orders.get, orders.create, orders.updateStatus`)
 })
 
-// Start server
 const PORT = 3002
 fastify.listen({ port: PORT }).then(() => {
   console.log(`[Fastify] Orders worker running on http://localhost:${PORT}`)
