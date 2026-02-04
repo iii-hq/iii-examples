@@ -1,8 +1,8 @@
 import { getContext } from '@iii-dev/sdk'
 import { iii, state } from './iii-client'
-import type { OrderReadyEvent } from './types'
+import type { OrderReadyEvent, OrderState } from './types'
 
-type Order = { id: string; userId: string; productId: string; quantity: number; status: string }
+type LegacyOrder = { id: string; userId: string; productId: string; quantity: number; status: string }
 type Inventory = { id: string; quantity: number }
 
 const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
@@ -11,7 +11,7 @@ const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
 
   logger.info('Completing order', { orderId })
 
-  const order = await state.get('orders', orderId)
+  const order = await state.get<OrderState>('orders', orderId)
 
   if (order.status !== 'ready') {
     logger.warn('Order not in ready status, skipping completion', { orderId, status: order.status })
@@ -32,7 +32,7 @@ const completeOrder = async (event: { event: { data: OrderReadyEvent } }) => {
     return
   }
 
-  const createdOrder = await iii.invokeFunction<Omit<Order, 'status'>, Order>(
+  const createdOrder = await iii.invokeFunction<Omit<LegacyOrder, 'status'>, LegacyOrder>(
     'orders.create',
     { id: orderId, userId: order.userId, productId: order.productId, quantity: order.quantity }
   )

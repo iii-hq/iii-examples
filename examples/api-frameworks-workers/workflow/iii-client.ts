@@ -7,10 +7,10 @@ export const emitEvent = async (topic: string, data: any) => {
 }
 
 export const state = {
-    get: async (group_id: string, item_id: string) => {
-        return iii.invokeFunction('state.get', { group_id, item_id })
+    get: async <T = unknown>(group_id: string, item_id: string): Promise<T> => {
+        return iii.invokeFunction('state.get', { group_id, item_id }) as Promise<T>
     },
-    set: async (group_id: string, item_id: string, data: any) => {
+    set: async (group_id: string, item_id: string, data: unknown) => {
         return iii.invokeFunction('state.set', { group_id, item_id, data })
     },
     delete: async (group_id: string, item_id: string) => {

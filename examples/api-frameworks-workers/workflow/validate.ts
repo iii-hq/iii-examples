@@ -1,6 +1,6 @@
 import { getContext } from '@iii-dev/sdk'
-import { iii, state } from './iii-client'
-import type { OrderRequestedEvent, User, Product } from './types'
+import { iii, emitEvent, state } from './iii-client'
+import type { OrderRequestedEvent, OrderState, User, Product } from './types'
 
 const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) => {
   const { logger } = getContext()
@@ -8,7 +8,7 @@ const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) =>
 
   logger.info('Validating order', { orderId })
 
-  const order = await state.get('orders', orderId)
+  const order = await state.get<OrderState>('orders', orderId)
 
   const [user, product] = await Promise.all([
     iii.invokeFunction<{ id: string }, User | null>('users.get', { id: order.userId }),
@@ -28,19 +28,16 @@ const validateOrder = async (event: { event: { data: OrderRequestedEvent } }) =>
 
   await state.set('orders', orderId, { ...order, status: 'validated', user, product, updatedAt: Date.now() })
 
-  await iii.invokeFunction('event.emit', {
-    topic: 'order.validated',
-    data: { orderId }
-  })
+  await emitEvent('order.validated', { orderId })
 }
 
 const validateOrderCondition = async (event: { event: { data: OrderRequestedEvent } }) => {
   const { logger } = getContext()
   const { orderId } = event.event.data
 
-  logger.info('Validating order', { orderId })
+  logger.info('Checking validation condition', { orderId })
 
-  const order = await state.get('orders', orderId)
+  const order = await state.get<OrderState>('orders', orderId)
 
   if (!order) {
     logger.error('Order not found', { orderId })
@@ -61,7 +58,7 @@ iii.registerFunction({ function_path: 'workflow.order.validate' }, validateOrder
 iii.registerTrigger({
   trigger_type: 'event',
   function_path: 'workflow.order.validate',
-  config: { topic: 'order.requested', condition_function_path: 'workflow.order.validate' }
+  config: { topic: 'order.requested', condition_function_path: 'workflow.order.conditions.validate' }
 })
 
 console.log('[Workflow] order.validate - Triggered by order.requested, validates user + product in parallel')

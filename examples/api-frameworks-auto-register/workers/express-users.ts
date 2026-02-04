@@ -1,5 +1,5 @@
 import express from 'express'
-import { Bridge } from '@iii-dev/sdk'
+import { createBridge } from '../lib/bridge'
 import { autoRegister } from '../lib/auto-register'
 import type { User, GetByIdInput } from '../lib/types'
 
@@ -21,7 +21,7 @@ app.post('/users', (req, res) => {
 app.listen(3001, () => {
   console.log('[Express] Users API on :3001')
 
-  const bridge = new Bridge('ws://127.0.0.1:49134')
+  const bridge = createBridge('express-users')
 
   autoRegister({
     bridge,

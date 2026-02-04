@@ -1,7 +1,7 @@
 import Koa from 'koa'
 import Router from '@koa/router'
 import bodyParser from 'koa-bodyparser'
-import { Bridge } from '@iii-dev/sdk'
+import { createBridge } from '../lib/bridge'
 import { autoRegister } from '../lib/auto-register'
 import type { Inventory, InventoryInput } from '../lib/types'
 
@@ -26,7 +26,7 @@ app.use(router.routes())
 app.listen(3004, () => {
   console.log('[Koa] Inventory API on :3004')
 
-  const bridge = new Bridge('ws://127.0.0.1:49134')
+  const bridge = createBridge('koa-inventory')
 
   autoRegister({
     bridge,

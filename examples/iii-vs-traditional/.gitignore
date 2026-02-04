@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.js
+*.d.ts
+!mock-server.ts
+.DS_Store
+.env
+.env.local
+__pycache__/
+*.pyc

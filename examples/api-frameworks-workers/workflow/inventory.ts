@@ -1,6 +1,6 @@
 import { getContext } from '@iii-dev/sdk'
 import { emitEvent, iii, state } from './iii-client'
-import type { OrderValidatedEvent } from './types'
+import type { OrderState, OrderValidatedEvent } from './types'
 
 type Inventory = { id: string; quantity: number }
 
@@ -10,7 +10,7 @@ const checkInventory = async (event: { event: { data: OrderValidatedEvent } }) =
 
   logger.info('Checking inventory', { orderId })
 
-  const order = await state.get('orders', orderId)
+  const order = await state.get<OrderState>('orders', orderId)
 
   const inventory = await iii.invokeFunction<{ id: string }, Inventory | null>(
     'inventory.get',
