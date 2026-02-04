@@ -108,6 +108,8 @@ async def timeseries(req: TimeseriesRequest, x_api_key: str = Header(None)):
 @app.post("/predict")
 async def predict(req: PredictRequest, x_api_key: str = Header(None)):
     verify_key(x_api_key)
+    if req.periods < 1:
+        raise HTTPException(status_code=400, detail="periods must be at least 1")
     data = get_data(req.dataset)
     n = len(data)
     slope, intercept = linear_regression(data)
@@ -188,6 +190,8 @@ async def correlate(req: CorrelateRequest, x_api_key: str = Header(None)):
 @app.post("/report/generate")
 async def generate_report(req: ReportRequest, x_api_key: str = Header(None)):
     verify_key(x_api_key)
+    if req.periods < 1:
+        raise HTTPException(status_code=400, detail="periods must be at least 1")
     data = get_data(req.dataset)
     mean = statistics.mean(data)
     stdev = statistics.stdev(data) if len(data) > 1 else 0
