@@ -1,10 +1,12 @@
-import { type ApiRequest, type ApiResponse, getContext } from "@iii-dev/sdk";
 import {
-  state,
-  enqueue,
   registerFunction,
-  registerTrigger,
   call,
+  registerTrigger,
+  enqueue, // formerly emit
+  state,
+  getContext,
+  type ApiRequest,
+  type ApiResponse,
 } from "./iii-client";
 import type { CreateOrderInput, OrderState } from "./types";
 
@@ -51,26 +53,17 @@ const getOrder = async (req: ApiRequest): Promise<ApiResponse> => {
   return { status_code: 200, body: order };
 };
 
-// Would suggest either of these:
-// 1. making the function argument a part of the config object
-// 2. putting the function argument first and config object last
-// Slight preference for #1
+// Would suggest putting the function argument first and config object last
 registerFunction({ id: "workers::workflow::createOrder" }, createOrder);
-registerFunction({ id: "workers::workflow::getOrder" }, getOrder);
-
-// Example of #1 above
-const internalFunction = {
-  id: "workers::workflow::getorder",
-  target: getOrder,
-};
-
-const reference = registerFunction(internalFunction);
+const func1 = registerFunction({ id: "workers::workflow::getOrder" }, getOrder);
 
 const exposedInternalFunctionWithinThisDomain = {
   api_path: "order/:orderId",
   http_method: "GET",
-  function: reference, // reference is the string "workers::workflow::getOrder"
+  function_id: func1.id, // reference is the string "workers::workflow::getOrder"
 };
+
+const triggerRef = registerTrigger(exposedInternalFunctionWithinThisDomain);
 
 const exposedInternalFunctionInAnotherLanguageOnAnotherWorker = {
   api_path: "order/:orderId",
@@ -89,14 +82,13 @@ const externalFunction = {
 // Changing function_path to something that doesn't have the ambiguity of "path"
 // id is pretty generic but luckily doesn't have a strong meaning
 // Someone could see it as path notation, or as just a string with a user-preferred structure
-// id probably shouldn't have a iii-enforced structure, that would be for frameworks to decide
-// Chose target_id because it's a bit more generic than function_id, if we one day
-// end up with triggers calling triggers or some other abstraction then this generic term is useful.
+// id shouldn't have a iii-enforced structure, that would be for frameworks to decide
+
 registerTrigger({
   type: "http",
-  target_id: "workers::workflow::createOrder",
+  function_id: "workers::workflow::createOrder",
   config: {
-    api_path: "order",
+    path: "/order", // Paths should start with /
     http_method: "POST",
     // May need a schema for request/response?
   },
@@ -106,7 +98,7 @@ registerTrigger({
   type: "http",
   target_id: "workers::workflow::getOrder",
   config: {
-    api_path: "order/:orderId",
+    path: "/order/:orderId",
     http_method: "GET",
     // May need a schema for request/response?
   },

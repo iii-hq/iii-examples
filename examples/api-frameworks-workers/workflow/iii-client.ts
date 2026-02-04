@@ -1,5 +1,14 @@
 import { Bridge, RemoteFunctionHandler } from "@iii-dev/sdk";
 
+// Internal functions should be namespaced to iii::function::domain::action
+// example: iii::function::state::get
+// [02:46:16.419 PM] [INFO] iii::function [REGISTERED] Function state.update
+// [02:46:16.419 PM] [INFO] iii::function [REGISTERED] Function state.list
+// [02:46:16.419 PM] [INFO] iii::function [REGISTERED] Function kv_server.get
+// [02:46:16.419 PM] [INFO] iii::function [REGISTERED] Function kv_server.set
+
+export { type ApiRequest, type ApiResponse, getContext } from "@iii-dev/sdk";
+
 export const iii = new Bridge(
   process.env.III_BRIDGE_URL ?? "ws://localhost:49134"
 );
