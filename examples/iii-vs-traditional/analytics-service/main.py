@@ -59,6 +59,18 @@ def get_data(name: str) -> list[float]:
     return [float(v) for v in DATASETS[name]]
 
 
+def linear_regression(data: list[float]) -> tuple[float, float]:
+    n = len(data)
+    x_vals = list(range(n))
+    x_mean = statistics.mean(x_vals)
+    y_mean = statistics.mean(data)
+    numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_vals, data, strict=True))
+    denominator = sum((x - x_mean) ** 2 for x in x_vals)
+    slope = numerator / denominator if denominator != 0 else 0
+    intercept = y_mean - slope * x_mean
+    return slope, intercept
+
+
 @app.get("/health")
 async def health():
     return {"status": "healthy", "datasets": list(DATASETS.keys())}
@@ -98,13 +110,7 @@ async def predict(req: PredictRequest, x_api_key: str = Header(None)):
     verify_key(x_api_key)
     data = get_data(req.dataset)
     n = len(data)
-    x_vals = list(range(n))
-    x_mean = statistics.mean(x_vals)
-    y_mean = statistics.mean(data)
-    numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_vals, data))
-    denominator = sum((x - x_mean) ** 2 for x in x_vals)
-    slope = numerator / denominator if denominator != 0 else 0
-    intercept = y_mean - slope * x_mean
+    slope, intercept = linear_regression(data)
     predictions = [round(slope * (n + i) + intercept, 2) for i in range(req.periods)]
     return {
         "dataset": req.dataset,
@@ -164,7 +170,7 @@ async def correlate(req: CorrelateRequest, x_api_key: str = Header(None)):
     n = min(len(a), len(b))
     a, b = a[:n], b[:n]
     mean_a, mean_b = statistics.mean(a), statistics.mean(b)
-    cov = sum((x - mean_a) * (y - mean_b) for x, y in zip(a, b)) / n
+    cov = sum((x - mean_a) * (y - mean_b) for x, y in zip(a, b, strict=True)) / n
     std_a = statistics.stdev(a) if len(a) > 1 else 0
     std_b = statistics.stdev(b) if len(b) > 1 else 0
     r = cov / (std_a * std_b) if std_a > 0 and std_b > 0 else 0
@@ -185,12 +191,7 @@ async def generate_report(req: ReportRequest, x_api_key: str = Header(None)):
     stdev = statistics.stdev(data) if len(data) > 1 else 0
 
     n = len(data)
-    x_vals = list(range(n))
-    x_mean = statistics.mean(x_vals)
-    numerator = sum((x - x_mean) * (y - mean) for x, y in zip(x_vals, data))
-    denominator = sum((x - x_mean) ** 2 for x in x_vals)
-    slope = numerator / denominator if denominator != 0 else 0
-    intercept = mean - slope * x_mean
+    slope, intercept = linear_regression(data)
     predictions = [round(slope * (n + i) + intercept, 2) for i in range(req.periods)]
 
     anomalies = []

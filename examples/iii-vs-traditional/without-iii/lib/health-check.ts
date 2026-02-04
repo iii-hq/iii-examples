@@ -9,8 +9,8 @@ export class HealthChecker {
     this.pollMs = pollMs
   }
 
-  start() {
-    this.check()
+  async start() {
+    await this.check()
     this.interval = setInterval(() => this.check(), this.pollMs)
   }
 

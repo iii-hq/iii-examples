@@ -85,6 +85,9 @@ const server = Bun.serve({
       if (!data) return json(404, { detail: `Dataset '${dataset}' not found` })
       const start = body.start ?? 0
       const end = body.end ?? data.length
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start) {
+        return json(400, { detail: 'Invalid range: expected 0 <= start <= end' })
+      }
       const sliced = data.slice(start, end)
       return json(200, { dataset, range: [start, end], values: sliced, count: sliced.length })
     }
@@ -95,6 +98,9 @@ const server = Bun.serve({
       const data = getData(dataset)
       if (!data) return json(404, { detail: `Dataset '${dataset}' not found` })
       const periods = body.periods ?? 3
+      if (!Number.isFinite(periods) || periods < 0) {
+        return json(400, { detail: 'Invalid periods: expected non-negative number' })
+      }
       const { slope, intercept } = linearRegression(data)
       const predictions = Array.from({ length: periods }, (_, i) =>
         +(slope * (data.length + i) + intercept).toFixed(2)
@@ -170,6 +176,9 @@ const server = Bun.serve({
       if (!data) return json(404, { detail: `Dataset '${dataset}' not found` })
       const metric = body.metric ?? 'revenue'
       const periods = body.periods ?? 3
+      if (!Number.isFinite(periods) || periods < 0) {
+        return json(400, { detail: 'Invalid periods: expected non-negative number' })
+      }
       const m = mean(data), s = stdev(data), med = median(data)
       const { slope, intercept } = linearRegression(data)
       const predictions = Array.from({ length: periods }, (_, i) =>

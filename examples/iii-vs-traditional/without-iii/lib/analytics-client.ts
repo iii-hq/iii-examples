@@ -25,11 +25,11 @@ export class AnalyticsClient {
     return this.breaker.execute(async () => {
       let lastError: Error | null = null
 
-      for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      const retryLimit = method === 'GET' || method === 'HEAD' ? this.maxRetries : 1
+      for (let attempt = 0; attempt < retryLimit; attempt++) {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), this.timeout)
         try {
-          const controller = new AbortController()
-          const timer = setTimeout(() => controller.abort(), this.timeout)
-
           const headers: Record<string, string> = {
             'x-api-key': this.apiKey,
             'Content-Type': 'application/json',
@@ -43,8 +43,6 @@ export class AnalyticsClient {
             signal: controller.signal,
           })
 
-          clearTimeout(timer)
-
           if (!res.ok) {
             const detail = await res.text()
             throw new Error(`Upstream ${res.status}: ${detail}`)
@@ -56,9 +54,11 @@ export class AnalyticsClient {
           if (err instanceof DOMException && err.name === 'AbortError') {
             lastError = new Error(`Request timeout after ${this.timeout}ms`)
           }
-          if (attempt < this.maxRetries - 1) {
+          if (attempt < retryLimit - 1) {
             await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 500))
           }
+        } finally {
+          clearTimeout(timer)
         }
       }
 

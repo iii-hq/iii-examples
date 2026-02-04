@@ -88,10 +88,19 @@ export interface ReportRequest {
   periods?: number
 }
 
+export interface ReportSummary {
+  count: number
+  mean: number
+  median: number
+  stdev: number
+  min: number
+  max: number
+}
+
 export interface ReportResponse {
   dataset: string
   metric: string
-  summary: SummaryResponse
+  summary: ReportSummary
   predictions: number[]
   anomalies: Anomaly[]
   trend: string

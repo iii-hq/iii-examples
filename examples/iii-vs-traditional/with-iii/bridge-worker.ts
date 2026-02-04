@@ -2,7 +2,11 @@ import { Bridge } from '@iii-dev/sdk'
 
 const ENGINE_URL = process.env.III_ENGINE_URL ?? 'ws://127.0.0.1:49134'
 const ANALYTICS_URL = process.env.ANALYTICS_URL ?? 'http://localhost:4000'
-const API_KEY = process.env.ANALYTICS_API_KEY ?? 'analytics-key-123'
+const isLocal = ANALYTICS_URL.includes('localhost') || ANALYTICS_URL.includes('127.0.0.1')
+const API_KEY = process.env.ANALYTICS_API_KEY ?? (isLocal ? 'analytics-key-123' : '')
+if (!API_KEY) {
+  throw new Error('ANALYTICS_API_KEY must be set for non-local analytics')
+}
 
 const bridge = new Bridge(ENGINE_URL, {
   otel: { enabled: true, serviceName: 'analytics-bridge', metricsEnabled: true, metricsExportIntervalMs: 5000 },

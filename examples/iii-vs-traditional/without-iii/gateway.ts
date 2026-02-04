@@ -101,7 +101,7 @@ app.post('/analytics/report', async (req, res, next) => {
 
 app.use(errorHandler)
 
-healthChecker.start()
+healthChecker.start().then(() => {})
 
 app.listen(PORT, () => {
   console.log(`[Gateway] Running on http://localhost:${PORT}`)
