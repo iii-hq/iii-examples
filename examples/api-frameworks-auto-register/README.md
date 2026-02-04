@@ -10,9 +10,8 @@ Run **4 legacy API frameworks** with **auto-registration**, **API triggers**, an
 |---------|------------------------|------------------------------|
 | Function registration | Manual, one by one | Auto-register helper |
 | API triggers | None (workflow only) | All handlers exposed as REST |
-| Logging | None | Shared context logger |
-| Request tracking | None | Request ID across all calls |
-| State sharing | None | Workflow state map |
+| Logging | None | SDK logger (OTEL) |
+| Request tracking | None | OTEL trace ID across all calls |
 
 ## Project Structure
 
@@ -20,7 +19,6 @@ Run **4 legacy API frameworks** with **auto-registration**, **API triggers**, an
 api-frameworks-auto-register/
 ├── lib/
 │   ├── auto-register.ts   # Auto-register all handlers
-│   └── context.ts         # Shared context (logger, state, requestId)
 ├── workers/
 │   ├── express-users.ts   # Legacy Express - Users
 │   ├── fastify-orders.ts  # Legacy Fastify - Orders
@@ -83,21 +81,23 @@ curl http://localhost:3003/products       # Hono
 curl http://localhost:3004/inventory/laptop  # Koa
 ```
 
-## Console Output (with context logging)
+## Console Output (with SDK logger)
+
+Logs are emitted via iii's built-in OTEL logger, which automatically includes trace IDs and service names:
 
 ```
-[req-1234-abc123] INFO: Starting order workflow { input: { userId: 'alice', ... } }
-[req-1234-abc123] INFO: Calling users.get { input: { id: 'alice' } }
-[req-1234-abc123] INFO: users.get returned { result: { id: 'alice', ... }, elapsed: 5 }
-[req-1234-abc123] INFO: Calling products.get { input: { id: 'laptop' } }
-[req-1234-abc123] INFO: products.get returned { result: { id: 'laptop', ... }, elapsed: 12 }
-[req-1234-abc123] INFO: Calling inventory.get { input: { productId: 'laptop' } }
-[req-1234-abc123] INFO: inventory.get returned { result: { quantity: 50 }, elapsed: 18 }
-[req-1234-abc123] INFO: Calling orders.create { input: { ... } }
-[req-1234-abc123] INFO: orders.create returned { result: { id: 'order-...', ... }, elapsed: 25 }
-[req-1234-abc123] INFO: Calling inventory.decrement { input: { productId: 'laptop', quantity: 2 } }
-[req-1234-abc123] INFO: inventory.decrement returned { result: { quantity: 48 }, elapsed: 30 }
-[req-1234-abc123] INFO: Order workflow complete { orderId: 'order-...', totalTime: 32 }
+INFO: Starting order workflow { userId: 'alice', productId: 'laptop', quantity: 2 }
+INFO: Calling users.get { input: { id: 'alice' } }
+INFO: users.get returned { result: { id: 'alice', ... } }
+INFO: Calling products.get { input: { id: 'laptop' } }
+INFO: products.get returned { result: { id: 'laptop', ... } }
+INFO: Calling inventory.get { input: { productId: 'laptop' } }
+INFO: inventory.get returned { result: { quantity: 50 } }
+INFO: Calling orders.create { input: { ... } }
+INFO: orders.create returned { result: { id: 'order-...', ... } }
+INFO: Calling inventory.decrement { input: { productId: 'laptop', quantity: 2 } }
+INFO: inventory.decrement returned { result: { quantity: 48 } }
+INFO: Order workflow complete { orderId: 'order-...' }
 ```
 
 ## Response
@@ -105,8 +105,7 @@ curl http://localhost:3004/inventory/laptop  # Koa
 ```json
 {
   "message": "Order created successfully",
-  "requestId": "req-1234-abc123",
-  "processingTime": "32ms",
+  "traceId": "abc123...",
   "order": { "id": "order-...", "userId": "alice", "productId": "laptop", "quantity": 2 },
   "user": { "id": "alice", "name": "Alice", "email": "alice@example.com" },
   "product": { "id": "laptop", "name": "MacBook", "price": 2499 },
@@ -154,25 +153,24 @@ autoRegister({
 // Registers functions AND triggers: GET /users/list, GET /users/get, POST /users/create
 ```
 
-### Shared Context
+### SDK Context & Logger
 
 ```typescript
-// Create context for request
-const ctx = createContext()
+import { getContext, currentTraceId } from '@iii-dev/sdk'
 
-// All calls share the same request ID and logger
-ctx.logger.info('Starting workflow')        // [req-abc123] INFO: Starting workflow
-await invoke(ctx, 'users.get', { id })      // Logs with same request ID
-await invoke(ctx, 'orders.create', data)    // Logs with same request ID
+// Get the SDK context (includes OTEL-backed logger)
+const ctx = getContext()
+const traceId = currentTraceId()
 
-// Access results from shared state
-const user = ctx.state.get('users.get')
-const order = ctx.state.get('orders.create')
+// Logger automatically includes trace IDs and service name via OTEL
+ctx.logger.info('Starting workflow')
+await invoke(ctx, 'users.get', { id })
+await invoke(ctx, 'orders.create', data)
 ```
 
 ## Why This Pattern?
 
 - **Legacy workers stay simple** - no changes to existing code
 - **Workflow owns orchestration** - context, logging, error handling
-- **Request tracing** - single ID tracks request across all services
-- **Shared state** - access any result without passing through chain
+- **Request tracing** - OTEL trace ID tracks request across all services
+- **No custom infrastructure** - uses SDK's built-in logger and context

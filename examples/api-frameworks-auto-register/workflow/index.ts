@@ -1,17 +1,20 @@
-import { Bridge } from '@iii-dev/sdk'
-import { createContext, elapsed, WorkflowContext } from '../lib/context'
+import { Bridge, getContext, currentTraceId } from '@iii-dev/sdk'
+import type { Context } from '@iii-dev/sdk'
 import type { User, Product, Order, Inventory, CreateOrderInput } from '../lib/types'
 
-const bridge = new Bridge('ws://127.0.0.1:49134')
+const ENGINE_URL = process.env.III_ENGINE_URL ?? 'ws://127.0.0.1:49134'
 
-async function invoke<T>(ctx: WorkflowContext, fn: string, input: unknown): Promise<T> {
+const bridge = new Bridge(ENGINE_URL, {
+  otel: { enabled: true, serviceName: 'workflow-orchestrator', metricsEnabled: true, metricsExportIntervalMs: 5000 },
+})
+
+async function invoke<T>(ctx: Context, fn: string, input: unknown): Promise<T> {
   ctx.logger.info(`Calling ${fn}`, { input })
   const response = await bridge.invokeFunction(fn, input) as { status_code?: number; body?: T } | T
-  const result = (response && typeof response === 'object' && 'body' in response) 
-    ? response.body as T 
+  const result = (response && typeof response === 'object' && 'body' in response)
+    ? response.body as T
     : response as T
-  ctx.logger.info(`${fn} returned`, { result, elapsed: elapsed(ctx) })
-  ctx.state.set(fn, result)
+  ctx.logger.info(`${fn} returned`, { result })
   return result
 }
 
@@ -26,7 +29,8 @@ bridge.registerFunction(
   { function_path: 'workflow.createOrder' },
   async (req: { body?: CreateOrderInput } & CreateOrderInput) => {
     const input: CreateOrderInput = req.body || req
-    const ctx = createContext()
+    const ctx = getContext()
+    const traceId = currentTraceId()
     ctx.logger.info('Starting order workflow', input)
 
     const validationError = validateInput(input)
@@ -59,14 +63,13 @@ bridge.registerFunction(
       const order = await invoke<Order>(ctx, 'orders.create', { userId, productId, quantity })
       const newStock = await invoke<Inventory>(ctx, 'inventory.decrement', { productId, quantity })
 
-      ctx.logger.info('Order workflow complete', { orderId: order.id, totalTime: elapsed(ctx) })
+      ctx.logger.info('Order workflow complete', { orderId: order.id })
 
       return {
         status_code: 201,
         body: {
           message: 'Order created successfully',
-          requestId: ctx.requestId,
-          processingTime: `${elapsed(ctx)}ms`,
+          traceId,
           order,
           user,
           product,
@@ -76,7 +79,7 @@ bridge.registerFunction(
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       ctx.logger.error('Workflow failed', { error: message })
-      return { status_code: 500, body: { error: message, requestId: ctx.requestId } }
+      return { status_code: 500, body: { error: message, traceId } }
     }
   }
 )
