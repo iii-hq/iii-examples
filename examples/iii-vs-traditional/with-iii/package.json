@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n bridge,workflow -c blue,cyan \"bun --watch bridge-worker.ts\" \"bun --watch workflow.ts\""
+    "dev": "concurrently -n worker,workflow -c blue,cyan \"bun --watch worker.ts\" \"bun --watch workflow.ts\""
   },
   "dependencies": {
     "@iii-dev/sdk": "^0.3.0",
