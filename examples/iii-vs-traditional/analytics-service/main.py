@@ -144,6 +144,8 @@ async def detect_anomalies(req: AnomalyRequest, x_api_key: str = Header(None)):
 @app.post("/segments")
 async def segment(req: SegmentRequest, x_api_key: str = Header(None)):
     verify_key(x_api_key)
+    if req.segments < 1:
+        raise HTTPException(status_code=400, detail="segments must be > 0")
     data = get_data(req.dataset)
     sorted_data = sorted(data)
     chunk_size = max(1, len(sorted_data) // req.segments)
