@@ -1,12 +1,15 @@
 import { spawn, type ChildProcess } from 'child_process'
 import { createInterface, type Interface } from 'readline'
 import { EventEmitter } from 'events'
+import { existsSync } from 'fs'
 
 interface PendingRequest {
   resolve: (result: unknown) => void
   reject: (error: Error) => void
   timeout: ReturnType<typeof setTimeout>
 }
+
+const PYTHON_PATH = process.env.PYTHON_PATH ?? 'python3'
 
 export class PythonIPC extends EventEmitter {
   private process: ChildProcess | null = null
@@ -29,7 +32,11 @@ export class PythonIPC extends EventEmitter {
   }
 
   async start(): Promise<void> {
-    this.process = spawn('python3', [this.scriptPath], {
+    if (!existsSync(this.scriptPath)) {
+      throw new Error(`Python script not found: ${this.scriptPath}`)
+    }
+
+    this.process = spawn(PYTHON_PATH, [this.scriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
     })
 

@@ -12,17 +12,48 @@ const bridge = createBridge('user-service')
 
 const users: Map<string, User> = new Map()
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MAX_NAME_LENGTH = 200
+const MAX_EMAIL_LENGTH = 254
+
 function generateId(): string {
   return `usr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
+function validateCreateInput(input: CreateUserInput): string | null {
+  if (!input.email || typeof input.email !== 'string') {
+    return 'email is required'
+  }
+  if (input.email.length > MAX_EMAIL_LENGTH) {
+    return `email exceeds maximum length of ${MAX_EMAIL_LENGTH}`
+  }
+  if (!EMAIL_REGEX.test(input.email)) {
+    return 'invalid email format'
+  }
+  if (!input.name || typeof input.name !== 'string') {
+    return 'name is required'
+  }
+  if (input.name.trim().length === 0) {
+    return 'name cannot be empty'
+  }
+  if (input.name.length > MAX_NAME_LENGTH) {
+    return `name exceeds maximum length of ${MAX_NAME_LENGTH}`
+  }
+  return null
+}
+
 bridge.registerFunction(
   { function_path: 'users.create' },
-  async (input: CreateUserInput): Promise<User> => {
+  async (input: CreateUserInput): Promise<User | { error: string }> => {
+    const validationError = validateCreateInput(input)
+    if (validationError) {
+      return { error: validationError }
+    }
+
     const user: User = {
       id: generateId(),
-      email: input.email,
-      name: input.name,
+      email: input.email.toLowerCase().trim(),
+      name: input.name.trim(),
       plan: input.plan ?? 'free',
       createdAt: new Date().toISOString(),
     }

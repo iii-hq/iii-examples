@@ -6,20 +6,40 @@ This example demonstrates **iii-engine** seamlessly coordinating services across
 
 ## Architecture
 
-```
-                              iii-engine (ws://127.0.0.1:49134)
-                                        |
-         +------------------------------+------------------------------+
-         |                              |                              |
-    Node.js User              Node.js Data                    Node.js Stripe
-    Service                   Requester                       Bridge
-    (users.*)                 (analytics.*)                   (stripe.*)
-         |                         |                               |
-         |                   spawns subprocess                HTTP calls
-         |                         |                               |
-         |                   Python Analytics              Rust Fake Stripe
-         |                   (stdin/stdout)                (HTTP :4040)
-         |                   NO HTTP ENDPOINTS
+```mermaid
+flowchart TB
+    subgraph Client
+        API[curl / HTTP Client]
+    end
+
+    subgraph iii[iii-engine]
+        ENGINE[WebSocket Hub<br/>ws://127.0.0.1:49134]
+    end
+
+    subgraph Workers[Node.js Workers]
+        USER[User Service<br/>users.*]
+        DATA[Data Requester<br/>analytics.*]
+        STRIPE_BRIDGE[Stripe Bridge<br/>stripe.*]
+    end
+
+    subgraph Services[External Services]
+        PYTHON[Python Analytics<br/>stdin/stdout IPC<br/>NO HTTP]
+        RUST[Rust Fake Stripe<br/>HTTP :4040]
+    end
+
+    API -->|POST /onboard| ENGINE
+    ENGINE <-->|WebSocket| USER
+    ENGINE <-->|WebSocket| DATA
+    ENGINE <-->|WebSocket| STRIPE_BRIDGE
+    DATA -->|spawns & IPC| PYTHON
+    STRIPE_BRIDGE -->|HTTP calls| RUST
+
+    style PYTHON fill:#3776ab,color:#fff
+    style RUST fill:#dea584,color:#000
+    style ENGINE fill:#6366f1,color:#fff
+    style USER fill:#22c55e,color:#fff
+    style DATA fill:#22c55e,color:#fff
+    style STRIPE_BRIDGE fill:#22c55e,color:#fff
 ```
 
 ## Business Scenario: SaaS User Onboarding
