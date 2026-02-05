@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-import { Bridge } from '@iii-dev/sdk'
+import { createBridge } from '../lib/bridge'
 import { autoRegister } from '../lib/auto-register'
 import type { Order, GetByIdInput, CreateOrderInput } from '../lib/types'
 
@@ -19,7 +19,7 @@ fastify.post<{ Body: CreateOrderInput }>('/orders', async (req) => {
 fastify.listen({ port: 3002 }, () => {
   console.log('[Fastify] Orders API on :3002')
 
-  const bridge = new Bridge('ws://127.0.0.1:49134')
+  const bridge = createBridge('fastify-orders')
 
   autoRegister({
     bridge,

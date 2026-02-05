@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
-import { Bridge } from '@iii-dev/sdk'
+import { createBridge } from '../lib/bridge'
 import { autoRegister } from '../lib/auto-register'
 import type { Product, GetByIdInput } from '../lib/types'
 
@@ -21,7 +21,7 @@ app.post('/products', async (c) => {
 serve({ fetch: app.fetch, port: 3003 }, () => {
   console.log('[Hono] Products API on :3003')
 
-  const bridge = new Bridge('ws://127.0.0.1:49134')
+  const bridge = createBridge('hono-products')
 
   autoRegister({
     bridge,

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.js
+*.d.ts
+.DS_Store
+.env
+.env.local
+__pycache__/
+*.pyc
