@@ -24,6 +24,7 @@ iii --version
 | [api-frameworks-workers](examples/api-frameworks-workers) | Run 4 API frameworks as separate workers |
 | [api-frameworks-auto-register](examples/api-frameworks-auto-register) | Auto-registration + shared context (logging, state, request tracking) |
 | [iii-vs-traditional](examples/iii-vs-traditional) | Side-by-side: connect a Python service with iii (~120 lines) vs traditional gateway (~465 lines) |
+| [polyglot-coordination](examples/polyglot-coordination) | Coordinate Python, Node.js, and Rust services (Python via stdin/stdout IPC, Rust via HTTP) |
 
 ## Quick Start
 
