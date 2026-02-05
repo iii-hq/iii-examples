@@ -9,6 +9,14 @@ dist/
 *.mjs
 !tsconfig.json
 
+# Rust
+target/
+Cargo.lock
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+
 # IDE
 .idea/
 .vscode/
