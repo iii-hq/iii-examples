@@ -1,17 +1,18 @@
-# III Examples
+# iii Examples
 
-Official examples for [iii Engine](https://github.com/MotiaDev/iii-engine) - a WebSocket-based process communication engine.
+Official examples for the [iii engine](https://github.com/iii-hq/iii).
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Prerequisites
 
-Install III Engine:
+Install the iii engine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/MotiaDev/iii-engine/main/install.sh | sh
+curl -fsSL https://install.iii.dev/iii/main/install.sh | sh
 ```
 
-Verify installation:
-
+Verify:
 ```bash
 iii --version
 ```
@@ -28,31 +29,39 @@ iii --version
 ## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/MotiaDev/iii-examples.git
+git clone https://github.com/iii-hq/iii-examples.git
 cd iii-examples
 
-# Pick an example
 cd examples/api-frameworks-orchestration
-
-# Install dependencies
 npm install
 
-# Start III Engine (in a separate terminal)
+# Start the iii engine in a separate terminal
 iii
 
 # Run the example
 npm run dev
 ```
 
-1. **Workers** connect to iii Engine via WebSocket
+## How It Works
+
+1. **Workers** connect to the iii engine via WebSocket
 2. **Functions** are registered with the engine
-3. **Triggers** (API, cron, events) invoke functions
+3. **Triggers** (HTTP, cron, queue, stream) invoke functions
+
+## SDK Quick Reference
+
+| SDK | Init | Connect |
+|-----|------|---------|
+| Node.js | `const iii = init('ws://localhost:49134')` | Auto on `init()` |
+| Python | `iii = III('ws://localhost:49134')` | `await iii.connect()` required |
+| Rust | `let iii = III::new("ws://127.0.0.1:49134")` | `iii.connect().await?` required |
 
 ## Resources
 
-- [iii Engine Repository](https://github.com/MotiaDev/iii-engine)
-- [iii SDK (npm)](https://www.npmjs.com/package/@iii-dev/sdk)
+- [iii Engine](https://github.com/iii-hq/iii)
+- [iii SDKs](https://github.com/iii-hq/sdk)
+- [iii Console](https://github.com/iii-hq/console)
+- [Documentation](https://iii.dev/docs)
 
 ## License
 
