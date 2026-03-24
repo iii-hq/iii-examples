@@ -1,0 +1,14 @@
+[package]
+name = "iot-rust-sensors"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+iii-sdk = { version = "0.8.3", features = ["otel"] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"

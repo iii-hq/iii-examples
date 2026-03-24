@@ -1,0 +1,17 @@
+{
+  "name": "iot-api-gateway",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "start": "npx tsx src/index.ts"
+  },
+  "dependencies": {
+    "iii-sdk": "0.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
