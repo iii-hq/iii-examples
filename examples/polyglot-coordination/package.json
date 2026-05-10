@@ -1,0 +1,24 @@
+{
+  "name": "@iii-dev/polyglot-coordination",
+  "version": "1.0.0",
+  "description": "Polyglot coordination example with Python, Node.js, and Rust services",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n stripe,data,users,workflow -c red,yellow,blue,green \"bun workers/stripe-bridge.ts\" \"bun workers/data-requester.ts\" \"bun workers/user-service.ts\" \"bun workflow/onboarding.ts\"",
+    "dev:stripe": "bun --watch workers/stripe-bridge.ts",
+    "dev:data": "bun --watch workers/data-requester.ts",
+    "dev:users": "bun --watch workers/user-service.ts",
+    "dev:workflow": "bun --watch workflow/onboarding.ts",
+    "stripe": "cd services/rust-stripe && cargo run --release",
+    "build:stripe": "cd services/rust-stripe && cargo build --release"
+  },
+  "dependencies": {
+    "@iii-dev/sdk": "0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.9.3"
+  }
+}
